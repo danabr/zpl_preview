@@ -1,4 +1,49 @@
 defmodule ZplPreview.Parser do
+
+  @doc """
+  Prases the given string of ZPL commands,
+  or list of tokens and returns a list of
+  commands and their arguments.
+    iex> ZPLPreview.Parser.parse("^FDHello")
+    [{:command, "FD", ["Hello"]}]
+
+    iex> ZPLPreview.Parser.parse(["^FD", "Hello"])
+    [{:command, "FD", ["Hello"]}]
+  """
+  def parse(str) when is_binary(str) do
+    str |> tokenize |> parse
+  end
+
+  def parse(tokens) when is_list(tokens) do
+    parse(tokens, [])
+  end
+
+  defp parse([], commands) do
+    Enum.reverse(commands)
+  end
+
+  defp parse([<<"^", command::binary>>|rest], commands) do
+    {args, rest_of_tokens} = Enum.split_while(rest, is_arg(&1))
+    parse(rest_of_tokens, [{:command, command, args}|commands])
+  end
+
+  defp parse([<<"~", command::binary>>|rest], commands) do
+    {args, rest_of_tokens} = Enum.split_while(rest, is_arg(&1))
+    parse(rest_of_tokens, [{:command, command, args}|commands])
+  end
+
+  defp is_arg(<<"^", _command::binary>>) do
+    false
+  end
+
+  defp is_arg(<<"~", _command::binary>>) do
+    false
+  end
+
+  defp is_arg(_arg) do
+    true
+  end
+
   @doc """
   Breaks the given string of ZPL into tokens.
   The string is expected to be UTF-8 encoded.
@@ -32,8 +77,7 @@ defmodule ZplPreview.Parser do
   defp tokenize(<<"~", rest::binary>>, buffer) do
     command = "~" <> String.at(rest, 0) <> String.at(rest, 1)
     [_, new_rest] = String.split(rest, %r{^..}, global: false)
-    tokenize(new_rest, [command|buffer])
-  end
+    tokenize(new_rest, [command|buffer]) end
 
   defp tokenize(str, buffer) do
     new_command = %r{^[^\^~]+}
