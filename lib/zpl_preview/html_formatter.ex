@@ -1,5 +1,6 @@
 
 defmodule ZplPreview.HtmlFormatter do
+
   def to_html(primitives, options) do
     dpi = Keyword.fetch!(options, :dpi)
     base_html(primitive_html(primitives, dpi), options)
