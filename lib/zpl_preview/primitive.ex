@@ -31,7 +31,7 @@ defmodule ZplPreview.Primitive do
   end
 
   defp from_zpl([ignore|rest], primitives, state) do
-    :io.format("Ignoring command: ~p~n", [ignore])
+    :io.format(:standard_error, "Ignoring command: ~p~n", [ignore])
     from_zpl(rest, primitives, state)
   end
 

@@ -16,7 +16,11 @@ defmodule ZplPreview.CLI do
   def process({:ok, options}) do
     zpl = File.read!(Keyword.fetch!(options, :file))
     output = ZplPreview.process(zpl, options)
-    IO.write :stdout, output
+    IO.write :stdio, output
+  end
+
+  def process(args) when is_list(args) do
+    parse_args(args) |> process
   end
 
   defp print_help do

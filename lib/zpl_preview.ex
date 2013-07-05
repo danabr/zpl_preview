@@ -1,4 +1,8 @@
 defmodule ZplPreview do
+  def main(args) do
+    ZplPreview.CLI.process(args)
+  end
+
   @doc """
     Process the given zpl input string and returns an output string formatted
     according to the options.
