@@ -25,6 +25,17 @@ defmodule ZplPreview.CLI do
 
   defp print_help do
     IO.puts :stderr, """
+    zpl_preview - convert ZPL to HTML
+
+    Options (all are required):
+    --format  - Output format. Supported formats: html
+    --width   - The width of the label in inches
+    --height  - The height of the label in inches
+    --dpi     - Dots per inch
+
+    Example:
+    $ zpl_preview --format html --width 2.36 --height 1.18 --dpi 300 input_file.zpl > output_file.html
+
     """
   end
 
@@ -94,7 +105,7 @@ defmodule ZplPreview.CLI do
   defp validate([{:file, file}|options], errors) do
     case File.regular?(file) do
       true -> validate(options, errors)
-      false -> validate(options, ["The file #{file} does not exist."|errors])
+      false -> validate(options, ["The file \"#{file}\" does not exist."|errors])
     end
   end
 

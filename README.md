@@ -6,13 +6,19 @@ in other formats (html, pdf, etc).
 Current state
 =============
 
-ZplPreview is still in its infant phase. There is no runnable executable,
-nor any usable library.
+ZplPreview is still in its infant phase. It currently supports converting ZPL to HTML,
+but will only display labels. All parts of the library are far from feature-complete.
 
 How to run
 ==========
+    $ zpl_preview --format html --width 2.36 --height 1.18 --dpi 300 input_file.zpl > output_file.html
 
-TODO
+Options (all are required):
+--format  - Output format. Supported formats: html
+--width   - The width of the label in inches
+--height  - The height of the label in inches
+--dpi     - Dots per inch
+
 
 Library
 =======

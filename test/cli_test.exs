@@ -31,7 +31,7 @@ defmodule ZplPreview.CLITest do
   test "parse_args returns help if an invalid file is given" do
     [_|reversed_args_without_file] =  Enum.reverse(valid_args())
     args = Enum.reverse(["noexisting.zpl"|reversed_args_without_file])
-    assert ZplPreview.CLI.parse_args(args) == {:error, ["The file noexisting.zpl does not exist."]}
+    assert ZplPreview.CLI.parse_args(args) == {:error, ["The file \"noexisting.zpl\" does not exist."]}
   end
 
   def valid_args do
