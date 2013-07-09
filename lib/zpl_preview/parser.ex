@@ -51,7 +51,7 @@ defmodule ZplPreview.Parser do
     ["^FD", "^Hello", "^FS"]
   """  
   def tokenize(str) do
-    tokenize(str, []) |> skip_blanks
+    skip_blanks(str) |> tokenize([])
   end
 
   defp tokenize("", buffer) do
@@ -90,7 +90,7 @@ defmodule ZplPreview.Parser do
     Enum.reverse(String.split(arg_str, ","))
   end
 
-  defp skip_blanks(tokens) do
-    Enum.filter(tokens, &1 != "\n")
+  defp skip_blanks(str) do
+    String.replace(str, "\n", "")
   end
 end

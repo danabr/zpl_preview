@@ -33,6 +33,10 @@ defmodule ZplPreview.HtmlFormatter do
     primitive_html(rest, dpi, [label_html(label, dpi)|output])
   end
 
+  defp primitive_html([box=ZplPreview.Primitive.GraphicBox[]|rest], dpi, output) do
+    primitive_html(rest, dpi, [box_html(box, dpi)|output])
+  end
+
   defp label_html(label=ZplPreview.Primitive.Label[], dpi) do
     left = to_inch(label.x(), dpi)
     top = to_inch(label.y(), dpi)
@@ -43,7 +47,28 @@ defmodule ZplPreview.HtmlFormatter do
     """
   end
 
+  defp box_html(box=ZplPreview.Primitive.GraphicBox[], dpi) do
+    left = to_inch(box.x(), dpi)
+    top = to_inch(box.y(), dpi)
+    width = to_inch(box.width(), dpi)
+    height = to_inch(box.height(), dpi)
+    thickness = to_inch(box.thickness(), dpi)
+    color = box_color_to_html_color(box.color())
+    radius = to_inch(box.radius(), dpi)
+    """
+    <div class="graphic_box" style="position: absolute; left: #{left}in; top: #{top}in; width: #{width}in; height: #{height}in; border: #{thickness}in solid #{color}; border-radius: #{radius}in;">&nbsp;</div>
+    """
+  end
+
   defp to_inch(value_in_dots, dpi) do
     :io_lib.format("~.3f", [value_in_dots / dpi])
+  end
+
+  defp box_color_to_html_color("B") do
+    "#000000"
+  end
+
+  defp box_color_to_html_color("W") do
+    "#FFFFFF"
   end
 end

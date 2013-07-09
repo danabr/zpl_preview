@@ -15,4 +15,11 @@ defmodule ZplPreviewTest do
     output = ExUnit.CaptureIO.capture_io(fn -> ZplPreview.main(args) end)
     assert output == File.read!("test/fixtures/single_label.html")
   end
+
+  test "it can process and render a complex label as html" do
+    input = File.read!("test/fixtures/complex.zpl")
+    options = [format: "html", width: 2.36, height: 1.18, dpi: 300]
+    output = ZplPreview.process(input, options)
+    assert output == File.read!("test/fixtures/complex.html")
+  end
 end
