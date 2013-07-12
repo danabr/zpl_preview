@@ -49,6 +49,18 @@ defmodule ZplPreview.Primitive do
     from_zpl(rest, [box|primitives], state)
   end
 
+  defp from_zpl([{:command, "XA", _args}|rest], primitives, state) do
+    from_zpl(rest, primitives, state)
+  end
+
+  defp from_zpl([{:command, "XZ", _args}|rest], primitives, state) do
+    from_zpl(rest, primitives, state)
+  end
+
+  defp from_zpl([{:command, "FS", _args}|rest], primitives, state) do
+    from_zpl(rest, primitives, state)
+  end
+
   defp from_zpl([ignore|rest], primitives, state) do
     :io.format(:standard_error, "Ignoring command: ~p~n", [ignore])
     from_zpl(rest, primitives, state)
