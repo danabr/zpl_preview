@@ -14,4 +14,10 @@ defmodule ZplPreview.ParserTest do
     commands = ZplPreview.Parser.parse(zpl)
     assert commands == [{:command, "XA", []}, {:command, "FO", ["50", "50"]}, {:command, "A", ["DN", "36", "20"]}, {:command, "FD",  ["Daniel Abrahamsson"]}, {:command, "FS", []}]
   end
+
+  test "it properly parses omitted parameters" do
+    zpl = "^GB,1,,,1"
+    commands = ZplPreview.Parser.parse(zpl)
+    assert commands == [{:command, "GB",  ["", "1", "", "", "1"]}]
+  end
 end

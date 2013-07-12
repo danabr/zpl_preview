@@ -1,5 +1,5 @@
 
-defrecord ZplPreview.Font, name: "A", orientation: :normal, width: 15, height: 12
+defrecord ZplPreview.Font, name: "A", orientation: :normal, width: 12, height: 15
 
 defmodule ZplPreview.Primitive do
   defrecord Label, x: 0, y: 0, text: "", font: nil
@@ -20,18 +20,25 @@ defmodule ZplPreview.Primitive do
     from_zpl(rest, [label|primitives], state)
   end
 
-  defp from_zpl([{:command, "FO", [x, y]}|rest], primitives, state) do
+  defp from_zpl([{:command, "FO", args}|rest], primitives, state) do
+    [x, y] = fill_in_defaults(args, ["0", "0"])
     from_zpl(rest, primitives, state(state, x: binary_to_integer(x), y: binary_to_integer(y)))
   end
 
-  defp from_zpl([{:command, "A", [name_and_orientation, height, width]}|rest], primitives, state) do
+  defp from_zpl([{:command, "A", args}|rest], primitives, state) do
+    [name_and_orientation, height, width] = fill_in_defaults(args, ["AN", "15", "12"])
     name = String.at(name_and_orientation, 0)
     orientation = String.at(name_and_orientation, 1)
     font = ZplPreview.Font[name: name, orientation: parse_orientation(orientation), width: binary_to_integer(width), height: binary_to_integer(height)]
     from_zpl(rest, primitives, state(state, font: font))
   end
 
-  defp from_zpl([{:command, "GB", [w, h, t, c, r]}|rest], primitives, state) do
+  defp from_zpl([{:command, "GB", args}|rest], primitives, state) do
+    [w, h, t, c, r] = fill_in_defaults(args, ["", "", "1", "B", "0"])
+
+    w = if w == "", do: t, else: w
+    h = if h == "", do: t, else: h
+
     box = ZplPreview.Primitive.GraphicBox[x: state(state, :x),
                                           y: state(state, :y),
                                           width: binary_to_integer(w),
@@ -45,6 +52,19 @@ defmodule ZplPreview.Primitive do
   defp from_zpl([ignore|rest], primitives, state) do
     :io.format(:standard_error, "Ignoring command: ~p~n", [ignore])
     from_zpl(rest, primitives, state)
+  end
+
+  # Fills in default values in the arg list in case some ars are missing.
+  # Args are considered missing if they are either omitted or blank ("").
+  defp fill_in_defaults(args, defaults) do
+    default_and_provided = Enum.zip(defaults, args)
+    Enum.map(default_and_provided, (fn ({default, provided}) ->
+      case provided do
+        nil -> default
+        "" -> default
+        _ -> provided
+      end
+    end))
   end
 
   defp parse_orientation("N"), do: :normal
