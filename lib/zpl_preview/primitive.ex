@@ -4,8 +4,9 @@ defrecord ZplPreview.Font, name: "A", orientation: :normal, width: 12, height: 1
 defmodule ZplPreview.Primitive do
   defrecord Label, x: 0, y: 0, text: "", font: nil
   defrecord GraphicBox, x: 0, y: 0, width: 1, height: 1, thickness: 1, color: "B", radius: 0
+  defrecord Barcode, type: nil, x: 0, y: 0, orientation: :normal, use_check_digit: false, height: 1, print_ipl: false, print_ipl_above_code: false, data: ""
 
-  defrecordp :state, x: 0, y: 0, font: ZplPreview.Font[]
+  defrecordp :state, x: 0, y: 0, font: ZplPreview.Font[], barcode: nil
 
   def from_zpl(commands) do
     from_zpl(commands, [], state())
@@ -16,8 +17,10 @@ defmodule ZplPreview.Primitive do
   end
 
   defp from_zpl([{:command, "FD", [text]}|rest], primitives, state) do
-    label = Label[text: text, x: state(state, :x), y: state(state, :y), font: state(state, :font)]
-    from_zpl(rest, [label|primitives], state)
+    case state(state, :barcode) do
+      nil -> make_label(text, rest, primitives, state)
+      barcode -> make_barcode(text, barcode, rest, primitives, state)
+    end
   end
 
   defp from_zpl([{:command, "FO", args}|rest], primitives, state) do
@@ -49,6 +52,20 @@ defmodule ZplPreview.Primitive do
     from_zpl(rest, [box|primitives], state)
   end
 
+  defp from_zpl([{:command, "B3", args}|rest], primitives, state) do
+    [orientation, check_digit, height, ipl, ipl_above_code] = fill_in_defaults(args, ["N", "N", "10", "Y", "N"])
+
+    barcode = ZplPreview.Primitive.Barcode[type: :code39,
+                                           x: state(state, :x),
+                                           y: state(state, :y),
+                                           orientation: parse_orientation(orientation),
+                                           height: binary_to_integer(height),
+                                           use_check_digit: to_bool(check_digit),
+                                           print_ipl: to_bool(ipl),
+                                           print_ipl_above_code: to_bool(ipl_above_code)]
+    from_zpl(rest, primitives, state(state, barcode: barcode))
+  end
+
   defp from_zpl([{:command, "XA", _args}|rest], primitives, state) do
     from_zpl(rest, primitives, state)
   end
@@ -64,6 +81,15 @@ defmodule ZplPreview.Primitive do
   defp from_zpl([ignore|rest], primitives, state) do
     :io.format(:standard_error, "Ignoring command: ~p~n", [ignore])
     from_zpl(rest, primitives, state)
+  end
+
+  defp make_label(text, commands, primitives, state) do
+    label = Label[text: text, x: state(state, :x), y: state(state, :y), font: state(state, :font)]
+    from_zpl(commands, [label|primitives], state)
+  end
+
+  defp make_barcode(data, barcode=Barcode[], commands, primitives, state) do
+    from_zpl(commands, [barcode.data(data)|primitives], state(state, barcode: nil))
   end
 
   # Fills in default values in the arg list in case some ars are missing.
@@ -84,6 +110,9 @@ defmodule ZplPreview.Primitive do
   defp parse_orientation("I"), do: :inverted
   defp parse_orientation("B"), do: :bottom_up
   defp parse_orientation(_), do: :normal
+
+  defp to_bool("Y"), do: true
+  defp to_bool(_), do: false
 
   defp box_radius(width, height, rounding_index) do
     max_rounding_index = 8

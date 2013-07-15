@@ -44,5 +44,11 @@ defmodule ZplPreview.PrimitiveTest do
     primitives = ZplPreview.Primitive.from_zpl(commands)
     assert primitives == [ZplPreview.Primitive.GraphicBox[x: 0, y: 0, width: 2, height: 2, thickness: 2, color: "B", radius: 0]]
   end
+
+  test "it can create a code 39 Barcode primitive" do
+    commands = [{:command, "FO", ["10", "20"]}, {:command, "B3", ["N", "Y", "50", "N", "N"]}, {:command, "FD",  ["123ABC"]}, {:command, "FS", []}]
+    primitives = ZplPreview.Primitive.from_zpl(commands)
+    assert primitives == [ZplPreview.Primitive.Barcode[type: :code39, x: 10, y: 20, orientation: :normal, use_check_digit: true, height: 50, print_ipl: false, print_ipl_above_code: false, data: "123ABC"]]
+  end
 end
 
